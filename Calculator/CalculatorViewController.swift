@@ -10,12 +10,13 @@ import UIKit
 
 class CalculatorViewController: UIViewController {
     @IBOutlet weak var display: UILabel!
+    @IBOutlet weak var history: UILabel!
     
     var userIsInTheMiddleOfTypingANumber = false
 
     @IBAction func appendDigit(sender: UIButton) {
-//        let digit = (sender.currentTitle! == "π") ? "\(M_PI)" : sender.currentTitle!
         let digit = sender.currentTitle!
+        history.text = history.text! + " " + digit
         println("Value: \(digit)")
         if userIsInTheMiddleOfTypingANumber{
            display.text = ((digit == ".") && display.text!.rangeOfString(".") != nil) ?  display.text! : display.text! + digit
@@ -28,6 +29,7 @@ class CalculatorViewController: UIViewController {
     
     @IBAction func operate(sender: UIButton) {
         let operation = sender.currentTitle!
+        history.text = history.text! + " " + operation
         if userIsInTheMiddleOfTypingANumber{
             enter()
         }
@@ -52,6 +54,13 @@ class CalculatorViewController: UIViewController {
             enter()
         default: break
         }
+    }
+    
+    @IBAction func reset() {
+        display.text = "0"
+        history.text = ""
+        operandStack = []
+        userIsInTheMiddleOfTypingANumber = false
     }
     
     func performOperation(operation: (Double,Double) -> Double){
