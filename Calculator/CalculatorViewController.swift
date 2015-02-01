@@ -16,23 +16,23 @@ class CalculatorViewController: UIViewController {
 
     @IBAction func appendDigit(sender: UIButton) {
         let digit = sender.currentTitle!
-        history.text = history.text! + " " + digit
         println("Value: \(digit)")
         if userIsInTheMiddleOfTypingANumber{
-           display.text = ((digit == ".") && display.text!.rangeOfString(".") != nil) ?  display.text! : display.text! + digit
+            display.text = ((digit == ".") && display.text!.rangeOfString(".") != nil) ? display.text! : display.text! + digit
         }else{
-            display.text = digit
+            display.text = digit == "." ? "0." : digit
             userIsInTheMiddleOfTypingANumber = true
         }
+        
 
     }
     
     @IBAction func operate(sender: UIButton) {
         let operation = sender.currentTitle!
-        history.text = history.text! + " " + operation
         if userIsInTheMiddleOfTypingANumber{
             enter()
         }
+        history.text = history.text! + " " + operation
         
         switch operation{
         case "x":
@@ -50,8 +50,7 @@ class CalculatorViewController: UIViewController {
         case "cos":
             performOperation {Double(cos($0))}
         case "π":
-            display.text = "\(M_PI)"
-            enter()
+            performOperation {M_PI}
         default: break
         }
     }
@@ -70,12 +69,16 @@ class CalculatorViewController: UIViewController {
         }
     }
     
-    func performOperation(operation: (Double) -> Double){
-        println("performing sqrt")
+    func performOperation(operation: Double -> Double){
         if operandStack.count >= 1 {
             displayValue = operation(operandStack.removeLast())
             enter()
         }
+    }
+    
+    func performOperation(operation: Void -> Double){
+        displayValue = operation()
+        enter()
     }
 
     var operandStack: [Double] = []
@@ -83,6 +86,7 @@ class CalculatorViewController: UIViewController {
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
         operandStack.append(displayValue)
+        history.text = history.text! + " " + display.text!
         println("operandStack: \(operandStack)")
     }
     
