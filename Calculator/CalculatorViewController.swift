@@ -55,6 +55,16 @@ class CalculatorViewController: UIViewController {
         }
     }
     
+    
+    @IBAction func backSpace() {
+        if countElements(display.text!) > 1 && userIsInTheMiddleOfTypingANumber{
+            display.text = dropLast(display.text!)
+        }else{
+            display.text = "0"
+            userIsInTheMiddleOfTypingANumber = false
+        }
+    }
+    
     @IBAction func reset() {
         display.text = "0"
         history.text = ""
