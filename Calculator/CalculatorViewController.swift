@@ -13,6 +13,7 @@ class CalculatorViewController: UIViewController {
     @IBOutlet weak var history: UILabel!
     
     var userIsInTheMiddleOfTypingANumber = false
+    var brain = CalculatorBrain()
 
     @IBAction func appendDigit(sender: UIButton) {
         let digit = sender.currentTitle!
@@ -23,36 +24,22 @@ class CalculatorViewController: UIViewController {
             display.text = digit == "." ? "0." : digit
             userIsInTheMiddleOfTypingANumber = true
         }
-        
-
     }
-    
+
     @IBAction func operate(sender: UIButton) {
-        let operation = sender.currentTitle!
         if userIsInTheMiddleOfTypingANumber{
             enter()
         }
-        history.text = history.text! + " " + operation
         
-        switch operation{
-        case "x":
-            performOperation {$0 * $1}
-        case "÷":
-            performOperation {$0 / $1}
-        case "+":
-            performOperation {$0 + $1}
-        case "-":
-            performOperation {$0 - $1}
-        case "√":
-            performOperation {sqrt($0)}
-        case "sin":
-            performOperation {Double(sin($0))}
-        case "cos":
-            performOperation {Double(cos($0))}
-        case "π":
-            performOperation {M_PI}
-        default: break
+        if let operation = sender.currentTitle {
+            if let result = brain.performOperation(operation){
+                displayValue = result
+                history.text = history.text! + " " + operation
+            }else{
+                reset()
+            }
         }
+
     }
     
     
@@ -68,38 +55,22 @@ class CalculatorViewController: UIViewController {
     @IBAction func reset() {
         display.text = "0"
         history.text = ""
-        operandStack = []
+        brain.reset()
         userIsInTheMiddleOfTypingANumber = false
     }
     
-    func performOperation(operation: (Double,Double) -> Double){
-        if operandStack.count >= 2 {
-            displayValue = operation(operandStack.removeLast(), operandStack.removeLast())
-            enter()
-        }
-    }
-    
-    func performOperation(operation: Double -> Double){
-        if operandStack.count >= 1 {
-            displayValue = operation(operandStack.removeLast())
-            enter()
-        }
-    }
-    
-    func performOperation(operation: Void -> Double){
-        displayValue = operation()
-        enter()
-    }
 
-    var operandStack: [Double] = []
     
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
-        operandStack.append(displayValue)
-        history.text = history.text! + " " + display.text!
-        println("operandStack: \(operandStack)")
+        if let result = brain.pushOperand(displayValue){
+            displayValue = result
+            history.text = history.text! + " " + display.text!
+        }else {
+            reset()
+        }
     }
-    
+
     var displayValue:Double {
         get{
             return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
