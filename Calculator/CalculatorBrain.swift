@@ -125,67 +125,83 @@ class CalculatorBrain {
         get {
             var res: String?
             var opStackClone = opStack
+//          Loop through the whole stack till its empty
             while !opStackClone.isEmpty{
                 let descResult = descriptionGet(opStackClone)
+//              Set the clone stack to hold everything thats left
                 opStackClone = descResult.remainingOps
-//                Not the First Value
+//              Check if this is the first value entered
                 if let result = res{
-//                    the Result recieved now is valid
-                    if let descResultBefore =  descResult.result{
-                        res = "\(descResultBefore), \(result)"
+//                  Check if the result is just a single value (ie. Pi, a num etc)
+                    if !descResult.single{
+//                      Comma seperate if the result is a evaluated function
+                        if let descResultBefore =  descResult.result{
+                            res = "\(descResultBefore), \(result)"
+                        }
                     }
                 }else {
-//                    the Result recieved now is valid
+//                  The Result recieved now is valid
                     if let descResultFirst =  descResult.result{
                         res = descResultFirst
                     }
                 }
             }
-            
+//          Set it to blank if something goes wrong and there is no result
             if let result = res{
                 return result
             }else {
                 return ""
             }
-//            if let result =  descriptionGet(opStack).result{
-//                res = result
-//            }else{
-//                return ""
-//            }
         }
     }
     
-    private func descriptionGet(ops: [Op]) -> (result: String?, remainingOps: [Op]){
+    private func descriptionGet(ops: [Op]) -> (result: String?, remainingOps: [Op], single: Bool){
+//      A check to handle the case when a evaluated brackets value is returned or not (single)
+        var single = false
+        
+//      If empty add the ?
         if ops.isEmpty{
-            println("empty")
-            return ("?", ops)
+            return ("?", ops, single)
         }
         
+//      Initials
         var opStackClone = ops
         var op = opStackClone.removeLast()
         var res = ""
-        println(op.description)
+//      Check the op
         switch op{
         case .Operand(let operand):
             res = operand.description
+            single = true
+
         case .VoidOperation(let operation, _):
+            single = true
             res = operation
+            
         case .UnaryOperation(let operation, _):
-            if let last = descriptionGet(opStackClone).result{
-                res =  "\(operation)(\(last))"
+//          Get the last value to perform the operation on
+            let last = descriptionGet(opStackClone)
+            if let lastVal = last.result{
+                res =  "\(operation)(\(lastVal))"
             }
+            opStackClone = last.remainingOps
+
+//      Get the last 2 values to perform the operation on
         case .BinaryOperation(let operation, _):
             let eval = descriptionGet(opStackClone)
             if let first = eval.result {
-                if let last = descriptionGet(eval.remainingOps).result{
-                    res = "\(last)\(operation)\(first)"
+                let last = descriptionGet(eval.remainingOps)
+                if let lastVal = last.result{
+                    res = "\(lastVal)\(operation)\(first)"
                 }
+                opStackClone = last.remainingOps
             }
-            
+
         case .Variable(let str):
+            single = true
             res = str
             
         } // End Switch
-        return (res, opStackClone)
+        return (res, opStackClone, single)
     }
 }
