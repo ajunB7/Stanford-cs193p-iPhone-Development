@@ -158,7 +158,7 @@ class CalculatorBrain {
     private func descriptionGet(ops: [Op]) -> (result: String?, remainingOps: [Op], single: Bool){
 //      A check to handle the case when a evaluated brackets value is returned or not (single)
         var single = false
-        
+        println("desc Ops: \(ops)")
 //      If empty add the ?
         if ops.isEmpty{
             return ("?", ops, single)
@@ -188,11 +188,15 @@ class CalculatorBrain {
 
 //      Get the last 2 values to perform the operation on
         case .BinaryOperation(let operation, _):
-            let eval = descriptionGet(opStackClone)
-            if let first = eval.result {
-                let last = descriptionGet(eval.remainingOps)
+            let first = descriptionGet(opStackClone)
+            if let firstVal = first.result {
+                let last = descriptionGet(first.remainingOps)
                 if let lastVal = last.result{
-                    res = "\(lastVal)\(operation)\(first)"
+                    if first.single {
+                        res = "\(lastVal)\(operation)\(firstVal)"
+                    }else{
+                        res = "\(lastVal)\(operation)(\(firstVal))"
+                    }
                 }
                 opStackClone = last.remainingOps
             }
