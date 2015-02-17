@@ -10,25 +10,49 @@ import Foundation
 
 class CalculatorBrain {
     
-    private enum Op {
+//    Not inheritance, this is a protocall
+    private enum Op: Printable {
         case Operand(Double)
         case VoidOperation(String, Void -> Double)
         case UnaryOperation(String, Double -> Double)
         case BinaryOperation(String, (Double,Double) -> Double)
+        case Variable(String)
+        
+        var description: String {
+            get {
+                switch self {
+                case .Operand(let operand):
+                    return "\(operand)"
+                case .VoidOperation(let str, _):
+                    return str
+                case .UnaryOperation(let str, _):
+                    return str
+                case .BinaryOperation(let str, _):
+                    return str
+                case .Variable(let str):
+                    return str
+                }
+            }
+        }
     }
     
     private var opStack = [Op]()
     private var knownOps = [String:Op]()
+    private var variableValues = Dictionary<String,Double>()
     
     init() {
-        knownOps["x"] = Op.BinaryOperation("x",  *)
-        knownOps["+"] = Op.BinaryOperation("+",  +)
-        knownOps["÷"] = Op.BinaryOperation("÷",  {$1 / $0} )
-        knownOps["-"] = Op.BinaryOperation("-",  {$1 - $0} )
-        knownOps["÷"] = Op.UnaryOperation ("√",  sqrt )
-        knownOps["sin"] = Op.UnaryOperation ("sin",  {Double(sin($0))})
-        knownOps["cos"] = Op.UnaryOperation ("cos",  {Double(cos($0))})
-        knownOps["π"] = Op.VoidOperation("π", {M_PI})
+        func learnOp(op : Op){
+            knownOps[op.description] = op
+        }
+        
+        learnOp(Op.BinaryOperation("x", *))
+        learnOp(Op.BinaryOperation("+",  +))
+        learnOp(Op.BinaryOperation("÷",  {$1 / $0} ))
+        learnOp(Op.BinaryOperation("-",  {$1 - $0} ))
+        learnOp(Op.UnaryOperation ("√",  sqrt ))
+        learnOp(Op.UnaryOperation ("sin",  {Double(sin($0))}))
+        learnOp(Op.UnaryOperation ("cos",  {Double(cos($0))}))
+        learnOp(Op.VoidOperation("π", {M_PI}))
 
     }
     
@@ -61,6 +85,8 @@ class CalculatorBrain {
                         return (operation(operand1, operand2), op2Evaluation.remainingOps)
                     }
                 }
+            case .Variable(let str):
+                    return (variableValues[str], remainingOps)
             } // End Switch
         } // End If
 
@@ -73,12 +99,18 @@ class CalculatorBrain {
     
     func evaluate() -> Double? {
         let (result, remainingOps) = evaluate(opStack)
+        println("\(opStack) = \(result)")
         return result
     }
     
     
     func pushOperand(operand:Double) -> Double?{
         opStack.append(Op.Operand(operand))
+        return evaluate()
+    }
+    
+    func pushOperand(symbol: String) -> Double?{
+        opStack.append(Op.Variable(symbol))
         return evaluate()
     }
     
@@ -89,4 +121,71 @@ class CalculatorBrain {
         return evaluate()
     }
     
+    var description: String {
+        get {
+            var res: String?
+            var opStackClone = opStack
+            while !opStackClone.isEmpty{
+                let descResult = descriptionGet(opStackClone)
+                opStackClone = descResult.remainingOps
+//                Not the First Value
+                if let result = res{
+//                    the Result recieved now is valid
+                    if let descResultBefore =  descResult.result{
+                        res = "\(descResultBefore), \(result)"
+                    }
+                }else {
+//                    the Result recieved now is valid
+                    if let descResultFirst =  descResult.result{
+                        res = descResultFirst
+                    }
+                }
+            }
+            
+            if let result = res{
+                return result
+            }else {
+                return ""
+            }
+//            if let result =  descriptionGet(opStack).result{
+//                res = result
+//            }else{
+//                return ""
+//            }
+        }
+    }
+    
+    private func descriptionGet(ops: [Op]) -> (result: String?, remainingOps: [Op]){
+        if ops.isEmpty{
+            println("empty")
+            return ("?", ops)
+        }
+        
+        var opStackClone = ops
+        var op = opStackClone.removeLast()
+        var res = ""
+        println(op.description)
+        switch op{
+        case .Operand(let operand):
+            res = operand.description
+        case .VoidOperation(let operation, _):
+            res = operation
+        case .UnaryOperation(let operation, _):
+            if let last = descriptionGet(opStackClone).result{
+                res =  "\(operation)(\(last))"
+            }
+        case .BinaryOperation(let operation, _):
+            let eval = descriptionGet(opStackClone)
+            if let first = eval.result {
+                if let last = descriptionGet(eval.remainingOps).result{
+                    res = "\(last)\(operation)\(first)"
+                }
+            }
+            
+        case .Variable(let str):
+            res = str
+            
+        } // End Switch
+        return (res, opStackClone)
+    }
 }

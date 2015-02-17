@@ -34,10 +34,10 @@ class CalculatorViewController: UIViewController {
         if let operation = sender.currentTitle {
             if let result = brain.performOperation(operation){
                 displayValue = result
-                history.text = history.text! + " " + operation
-            }else{
-                reset()
+            }else {
+                displayValue = nil
             }
+            history.text = brain.description
         }
 
     }
@@ -63,20 +63,27 @@ class CalculatorViewController: UIViewController {
     
     @IBAction func enter() {
         userIsInTheMiddleOfTypingANumber = false
-        if let result = brain.pushOperand(displayValue){
-            displayValue = result
-            history.text = history.text! + " " + display.text!
-        }else {
-            reset()
+        println(displayValue)
+        if let displayValueText = displayValue {
+            if let result = brain.pushOperand(displayValueText){
+    //          displayValue = result
+                history.text = history.text! + " " + display.text!
+            }else {
+                displayValue = 0
+            }
         }
     }
 
-    var displayValue:Double {
+    var displayValue:Double? {
         get{
-            return NSNumberFormatter().numberFromString(display.text!)!.doubleValue
+            return NSNumberFormatter().numberFromString(display.text!)?.doubleValue
         }
         set {
-            display.text = "\(newValue)"
+            if let newValueText = newValue{
+                display.text = "\(newValueText)"
+            } else {
+                display.text = "0"
+            }
             userIsInTheMiddleOfTypingANumber = false
         }
     }
