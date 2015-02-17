@@ -168,17 +168,19 @@ class CalculatorBrain {
         var opStackClone = ops
         var op = opStackClone.removeLast()
         var res = ""
+
 //      Check the op
         switch op{
-        case .Operand(_):
+
+        case .Operand:
             res = op.description
             single = true
 
-        case .VoidOperation(_, _):
+        case .VoidOperation:
             single = true
             res = op.description
             
-        case .UnaryOperation(_, _):
+        case .UnaryOperation:
 //          Get the last value to perform the operation on
             let last = descriptionGet(opStackClone)
             if let lastVal = last.result{
@@ -187,7 +189,7 @@ class CalculatorBrain {
             opStackClone = last.remainingOps
 
 //      Get the last 2 values to perform the operation on
-        case .BinaryOperation(_, _):
+        case .BinaryOperation:
             let first = descriptionGet(opStackClone)
             if let firstVal = first.result {
                 let last = descriptionGet(first.remainingOps)
@@ -201,9 +203,9 @@ class CalculatorBrain {
                 opStackClone = last.remainingOps
             }
 
-        case .Variable(let str):
+        case .Variable:
             single = true
-            res = str
+            res = op.description
             
         } // End Switch
         return (res, opStackClone, single)
