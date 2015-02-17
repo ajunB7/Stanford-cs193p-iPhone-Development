@@ -22,7 +22,7 @@ class CalculatorBrain {
             get {
                 switch self {
                 case .Operand(let operand):
-                    return "\(operand)"
+                    return String(format: "%g", operand)
                 case .VoidOperation(let str, _):
                     return str
                 case .UnaryOperation(let str, _):
@@ -148,7 +148,7 @@ class CalculatorBrain {
             }
 //          Set it to blank if something goes wrong and there is no result
             if let result = res{
-                return result
+                return result + " ="
             }else {
                 return ""
             }
@@ -170,32 +170,32 @@ class CalculatorBrain {
         var res = ""
 //      Check the op
         switch op{
-        case .Operand(let operand):
-            res = operand.description
+        case .Operand(_):
+            res = op.description
             single = true
 
-        case .VoidOperation(let operation, _):
+        case .VoidOperation(_, _):
             single = true
-            res = operation
+            res = op.description
             
-        case .UnaryOperation(let operation, _):
+        case .UnaryOperation(_, _):
 //          Get the last value to perform the operation on
             let last = descriptionGet(opStackClone)
             if let lastVal = last.result{
-                res =  "\(operation)(\(lastVal))"
+                res =  "\(op.description)(\(lastVal))"
             }
             opStackClone = last.remainingOps
 
 //      Get the last 2 values to perform the operation on
-        case .BinaryOperation(let operation, _):
+        case .BinaryOperation(_, _):
             let first = descriptionGet(opStackClone)
             if let firstVal = first.result {
                 let last = descriptionGet(first.remainingOps)
                 if let lastVal = last.result{
                     if first.single {
-                        res = "\(lastVal)\(operation)\(firstVal)"
+                        res = "\(lastVal)\(op.description)\(firstVal)"
                     }else{
-                        res = "\(lastVal)\(operation)(\(firstVal))"
+                        res = "\(lastVal)\(op.description)(\(firstVal))"
                     }
                 }
                 opStackClone = last.remainingOps
