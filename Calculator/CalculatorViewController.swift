@@ -44,7 +44,7 @@ class CalculatorViewController: UIViewController {
     
     
     @IBAction func backSpace() {
-        if countElements(display.text!) > 1 && userIsInTheMiddleOfTypingANumber{
+        if count(display.text!) > 1 && userIsInTheMiddleOfTypingANumber{
             display.text = dropLast(display.text!)
         }else{
             display.text = "0"

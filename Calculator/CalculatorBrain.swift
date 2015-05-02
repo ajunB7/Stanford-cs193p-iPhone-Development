@@ -56,6 +56,25 @@ class CalculatorBrain {
 
     }
     
+    typealias PropertyList = AnyObject
+    var program: PropertyList { //Always to be plist
+        get {
+            return opStack.map {$0.description }
+        }
+        set {
+            if let opSymbols = newValue as? [String] {
+                var newOpStack = [Op]()
+                for opSymbol in opSymbols {
+                    if let op = knownOps[opSymbol]{
+                        newOpStack.append(op)
+                    }else if let operand = NSNumberFormatter().numberFromString(opSymbol)?.doubleValue {
+                        newOpStack.append(.Operand(operand))
+                    }
+                }
+            }
+        }
+    }
+    
 //    Returns 2 things in a tuple
 //    In Swift Arrays are structs(no superClasses) and passed by value (readOnly)
 //    Classes(Double, ints...) are generally passed by reference
